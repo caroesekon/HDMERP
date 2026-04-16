@@ -3,6 +3,7 @@ import { HiChatAlt2, HiX, HiSupport, HiMinus, HiPaperAirplane } from 'react-icon
 import { chatApi } from '../../services/chatApi';
 import { useHubAuth } from '../../hooks/useHubAuth';
 import toast from 'react-hot-toast';
+import appService from '../../services/appService';
 
 const ChatWidget = ({ isOpen, onToggle }) => {
   const { user } = useHubAuth();
@@ -12,11 +13,24 @@ const ChatWidget = ({ isOpen, onToggle }) => {
   const [sessionId, setSessionId] = useState(null);
   const [hasAdminReplied, setHasAdminReplied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [allApps, setAllApps] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const pollingRef = useRef(null);
 
-  // Load chat history from backend
+  // Fetch all apps from backend
+  const fetchApps = useCallback(async () => {
+    try {
+      const res = await appService.getAvailableApps();
+      if (res.data && Array.isArray(res.data)) {
+        setAllApps(res.data);
+      }
+    } catch (error) {
+      console.error('Error fetching apps for chat:', error);
+    }
+  }, []);
+
+  // Load chat history
   const loadChatHistory = useCallback(async (sid) => {
     if (!sid) return;
     try {
@@ -37,6 +51,7 @@ const ChatWidget = ({ isOpen, onToggle }) => {
   useEffect(() => {
     const initChat = async () => {
       const savedSessionId = localStorage.getItem('chatSessionId');
+      await fetchApps();
       
       if (savedSessionId) {
         setSessionId(savedSessionId);
@@ -52,9 +67,29 @@ const ChatWidget = ({ isOpen, onToggle }) => {
           console.error('Error creating session:', error);
         }
         
+        // Build systems list from fetched apps
+        const builtInSystems = allApps.filter(app => app.isBuiltIn && app.isActive);
+        const externalAppsList = allApps.filter(app => !app.isBuiltIn && app.isActive);
+        
+        let systemsText = '';
+        if (builtInSystems.length > 0) {
+          systemsText = '**Available Systems:**\n';
+          builtInSystems.forEach((sys, idx) => {
+            systemsText += `${idx + 1}. ${sys.name} - ${sys.description || 'Business management'}\n`;
+          });
+        }
+        
+        let externalText = '';
+        if (externalAppsList.length > 0) {
+          externalText = '\n**Connected Apps:**\n';
+          externalAppsList.forEach((app, idx) => {
+            externalText += `${idx + 1}. ${app.name} - ${app.description || 'Integration tool'}\n`;
+          });
+        }
+        
         const welcomeMessage = {
           id: Date.now(),
-          text: '👋 Hello! I am **HDM**, your online assistant. How can I help you today?',
+          text: `👋 Hello! I am **HDM**, your online assistant.\n\n${systemsText}${externalText}\n\nHow can I assist you today? You can ask about pricing, features, support, or request a demo.`,
           sender: 'bot',
           timestamp: new Date(),
           options: [
@@ -73,7 +108,7 @@ const ChatWidget = ({ isOpen, onToggle }) => {
     };
     
     initChat();
-  }, [isOpen, messages.length, loadChatHistory]);
+  }, [isOpen, messages.length, loadChatHistory, fetchApps, allApps]);
 
   // Save messages to localStorage
   useEffect(() => {
@@ -185,7 +220,8 @@ const ChatWidget = ({ isOpen, onToggle }) => {
         options: [
           { id: 'pos_details', text: '🛒 Learn about POS' },
           { id: 'staff_details', text: '👥 Learn about Staff Management' },
-          { id: 'finance_details', text: '💰 Learn about Finance' }
+          { id: 'finance_details', text: '💰 Learn about Finance' },
+          { id: 'all_systems', text: '📦 Tell me about all systems' }
         ],
         needsAdmin: false
       },
@@ -207,6 +243,14 @@ const ChatWidget = ({ isOpen, onToggle }) => {
       },
       finance_details: {
         message: "💰 **Finance System** - Ksh 3,000/month\n\nFeatures: Income/Expense tracking, Invoices, Reports, Budgeting\n\nWould you like a demo?",
+        options: [
+          { id: 'demo_request', text: '🎥 Request Demo' },
+          { id: 'start_trial_now', text: '🚀 Start Free Trial' }
+        ],
+        needsAdmin: true
+      },
+      all_systems: {
+        message: "📦 **Complete Business Suite**\n\nOur ERP includes:\n• **POS System** - Sales & inventory\n• **Staff Management** - HR & payroll\n• **Finance System** - Accounting & reports\n\n**Bundle Price:** Ksh 6,000/month (Save Ksh 1,500)\n\nWould you like to schedule a demo or start a free trial?",
         options: [
           { id: 'demo_request', text: '🎥 Request Demo' },
           { id: 'start_trial_now', text: '🚀 Start Free Trial' }
@@ -414,54 +458,54 @@ const ChatWidget = ({ isOpen, onToggle }) => {
     <>
       <button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-primary-600 to-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 bg-gradient-to-r from-primary-600 to-blue-600 text-white p-3 sm:p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
       >
         {isOpen ? (
-          <HiX className="h-6 w-6" />
+          <HiX className="h-5 w-5 sm:h-6 sm:w-6" />
         ) : (
           <>
-            <HiChatAlt2 className="h-6 w-6 group-hover:animate-bounce" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-pulse"></span>
+            <HiChatAlt2 className="h-5 w-5 sm:h-6 sm:w-6 group-hover:animate-bounce" />
+            <span className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-red-500 rounded-full animate-pulse"></span>
           </>
         )}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-slide-up">
-          <div className="bg-gradient-to-r from-primary-600 to-blue-600 text-white p-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white/20 p-2 rounded-full">
-                <HiSupport className="h-5 w-5" />
+        <div className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-slide-up">
+          <div className="bg-gradient-to-r from-primary-600 to-blue-600 text-white p-3 sm:p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="bg-white/20 p-1.5 sm:p-2 rounded-full">
+                <HiSupport className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white">HDM Support</h3>
+                <h3 className="font-semibold text-white text-sm sm:text-base">HDM Support</h3>
                 <p className="text-xs text-primary-100">
                   {hasAdminReplied ? 'Admin online' : 'Online Assistant'}
                 </p>
               </div>
             </div>
             <button onClick={onToggle} className="text-white/80 hover:text-white transition">
-              <HiMinus className="h-5 w-5" />
+              <HiMinus className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
 
-          <div className="h-96 overflow-y-auto p-4 bg-gray-50">
+          <div className="h-80 sm:h-96 overflow-y-auto p-3 sm:p-4 bg-gray-50">
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className="mb-4">
+                <div key={message.id} className="mb-3 sm:mb-4">
                   <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-2 whitespace-pre-wrap ${
+                    <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-2 whitespace-pre-wrap ${
                       message.sender === 'user'
                         ? 'bg-gradient-to-r from-primary-600 to-blue-600 text-white'
                         : message.sender === 'admin'
                         ? 'bg-green-100 border border-green-200 text-green-800'
                         : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
                     }`}>
-                      <p className="text-sm">{message.text}</p>
+                      <p className="text-xs sm:text-sm">{message.text}</p>
                       <p className={`text-xs mt-1 ${
                         message.sender === 'user' 
                           ? 'text-primary-100' 
@@ -477,12 +521,12 @@ const ChatWidget = ({ isOpen, onToggle }) => {
                   </div>
                   
                   {message.options && message.options.length > 0 && !hasAdminReplied && (
-                    <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 ml-1 sm:ml-2">
                       {message.options.map((option) => (
                         <button
                           key={option.id}
                           onClick={() => handleOptionClick(option.id, option.text)}
-                          className="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition border border-gray-200"
+                          className="text-xs px-2 py-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition border border-gray-200"
                         >
                           {option.text}
                         </button>
@@ -494,12 +538,12 @@ const ChatWidget = ({ isOpen, onToggle }) => {
             )}
             
             {isTyping && (
-              <div className="mb-4 flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
+              <div className="mb-3 sm:mb-4 flex justify-start">
+                <div className="bg-white border border-gray-200 rounded-2xl px-3 py-2 sm:px-4 sm:py-2 shadow-sm">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
                 </div>
               </div>
@@ -508,7 +552,7 @@ const ChatWidget = ({ isOpen, onToggle }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 bg-white border-t border-gray-200">
+          <div className="p-3 sm:p-4 bg-white border-t border-gray-200">
             <div className="flex items-center space-x-2">
               <textarea
                 ref={inputRef}
@@ -517,15 +561,15 @@ const ChatWidget = ({ isOpen, onToggle }) => {
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
                 rows="1"
-                className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                style={{ maxHeight: '100px' }}
+                className="flex-1 resize-none border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                style={{ maxHeight: '80px' }}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
                 className="bg-gradient-to-r from-primary-600 to-blue-600 text-white p-2 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <HiPaperAirplane className="h-5 w-5" />
+                <HiPaperAirplane className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
             <p className="text-xs text-gray-400 mt-2 text-center">
