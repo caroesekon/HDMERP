@@ -1,0 +1,138 @@
+# ============================================
+# DEPENDENCIES
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# ENVIRONMENT FILES
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# ============================================
+# WHATSAPP SESSIONS (CRITICAL - CONTAINS CREDENTIALS)
+# DO NOT COMMIT THESE TO GIT
+# Keep local copies for deployment via SCP/RSYNC
+# ============================================
+sessions/
+sessions_dev/
+sessions_prod/
+*.session
+*.session-journal
+session-*
+wa-session-*
+
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============================================
+# UPLOADS & TEMPORARY FILES
+# ============================================
+uploads/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# ============================================
+# DATABASE
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+mongodb/
+data/
+
+# ============================================
+# OS FILES
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ============================================
+# IDE FILES
+# ============================================
+.vscode/
+.idea/
+*.iml
+*.code-workspace
+.project
+.classpath
+.settings/
+
+# ============================================
+# BUILD & DISTRIBUTION
+# ============================================
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# ============================================
+# TEST COVERAGE
+# ============================================
+coverage/
+.nyc_output/
+.jest/
+*.lcov
+
+# ============================================
+# PM2
+# ============================================
+.pm2/
+pm2*.log
+ecosystem.config.js
+
+# ============================================
+# DOCKER
+# ============================================
+.dockerignore
+
+docker-compose*.yml
+
+# ============================================
+# BACKUP FILES
+# ============================================
+*.backup
+*.bak
+*.old
+*-backup.json
+
+# ============================================
+# SECURITY SENSITIVE
+# ============================================
+*.pem
+*.key
+*.crt
+*.csr
+secrets/
+credentials/
+private/
+
+# ============================================
+# MISCELLANEOUS
+# ============================================
+*.pid
+*.seed
+*.pid.locks
