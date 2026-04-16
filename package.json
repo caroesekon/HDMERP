@@ -1,12 +1,14 @@
 {
   "name": "erp-hub",
   "version": "1.0.0",
-  "description": "ERP Hub Frontend Dashboard",
+  "description": "HDM ERP Frontend Dashboard",
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000 --host",
     "build": "vite build",
-    "preview": "vite preview --port 3000 --host"
+    "build:prod": "vite build --mode production",
+    "preview": "vite preview --port 3000 --host",
+    "preview:prod": "vite preview --port 3000 --host --mode production"
   },
   "dependencies": {
     "react": "^18.3.1",

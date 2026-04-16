@@ -25,17 +25,14 @@ export default function Landing() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Track page view
   useEffect(() => {
     trackPageView('landing');
   }, []);
 
-  // Fetch data
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Auto-slide effect
   useEffect(() => {
     if (loading) return;
     
@@ -57,8 +54,6 @@ export default function Landing() {
         systemService.getSettings()
       ]);
       
-      console.log('Settings received:', settingsRes.data);
-      
       if (appsRes.data && Array.isArray(appsRes.data)) {
         const sortedApps = [...appsRes.data].sort((a, b) => {
           if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
@@ -72,7 +67,6 @@ export default function Landing() {
       }
       
       if (settingsRes.data) {
-        // Handle both response formats
         const settingsData = settingsRes.data.data || settingsRes.data;
         setSettings(settingsData);
         localStorage.setItem('mainSettings', JSON.stringify(settingsData));
@@ -119,7 +113,11 @@ export default function Landing() {
     return ['Click to launch'];
   };
 
-  const splitFeaturesIntoThreeColumns = (features) => {
+  const splitFeaturesIntoColumns = (features, isMobile = false) => {
+    if (isMobile) {
+      // On mobile, show as single column
+      return { col1: features, col2: [], col3: [] };
+    }
     const columnSize = Math.ceil(features.length / 3);
     return {
       col1: features.slice(0, columnSize),
@@ -145,7 +143,6 @@ export default function Landing() {
     );
   }
 
-  // Get settings with fallbacks
   const general = settings?.general || {};
   const branding = settings?.branding || {};
   const features = settings?.features || {};
@@ -165,63 +162,65 @@ export default function Landing() {
   const externalApps = allApps.filter(app => !app.isBuiltIn && app.isActive);
   const allActiveApps = allApps.filter(app => app.isActive);
 
+  // Check if mobile screen
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <LandingHeader />
 
-      {/* Hero Section */}
-      <section className="pt-28 pb-16 px-4 bg-gradient-to-br from-primary-50 via-white to-blue-50">
+      {/* Hero Section - Mobile Optimized */}
+      <section className="pt-24 md:pt-28 pb-12 md:pb-16 px-4 bg-gradient-to-br from-primary-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
             
             {/* Left Side - Text Content */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-6">
-                <HiSparkles className="h-4 w-4 mr-1" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary-100 text-primary-700 text-xs md:text-sm font-medium mb-4 md:mb-6">
+                <HiSparkles className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                 All-in-One Business Suite
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4 md:mb-6">
                 <span className="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
                   {heroHeadline}
                 </span>
                 {' '}in One Place
               </h1>
-              <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
+              <p className="text-base md:text-lg text-gray-600 mb-6 md:mb-8 max-w-xl mx-auto lg:mx-0">
                 {tagline}
               </p>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-4">
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-600 transition shadow-lg hover:shadow-xl flex items-center"
+                  className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 md:px-6 py-2 md:py-3 rounded-xl font-semibold text-sm md:text-base hover:from-primary-700 hover:to-primary-600 transition shadow-lg hover:shadow-xl flex items-center"
                 >
                   Get Started Free
-                  <HiArrowRight className="ml-2 h-5 w-5" />
+                  <HiArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
                 </Link>
                 <a
                   href="#systems"
-                  className="bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold border border-gray-300 hover:border-primary-300 hover:shadow-md transition flex items-center"
+                  className="bg-white text-gray-700 px-4 md:px-6 py-2 md:py-3 rounded-xl font-semibold text-sm md:text-base border border-gray-300 hover:border-primary-300 hover:shadow-md transition flex items-center"
                 >
                   Explore Systems
                 </a>
               </div>
-              <div className="mt-6 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
+              <div className="mt-4 md:mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 md:space-x-6 text-xs md:text-sm text-gray-500">
                 <div className="flex items-center">
-                  <HiShieldCheck className="h-4 w-4 text-green-500 mr-1" />
+                  <HiShieldCheck className="h-3 w-3 md:h-4 md:w-4 text-green-500 mr-1" />
                   No credit card required
                 </div>
                 <div className="flex items-center">
-                  <HiLockClosed className="h-4 w-4 text-green-500 mr-1" />
+                  <HiLockClosed className="h-3 w-3 md:h-4 md:w-4 text-green-500 mr-1" />
                   Secure & Private
                 </div>
               </div>
             </div>
             
-            {/* Right Side - Individual App Slider */}
+            {/* Right Side - Individual App Slider (Desktop only) */}
             <div className="relative hidden lg:block">
               <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-blue-400 rounded-3xl blur-3xl opacity-20"></div>
               <div className="relative bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 overflow-hidden">
                 
-                {/* Slider Navigation Dots */}
                 <div className="flex justify-center space-x-2 mb-4 overflow-x-auto py-1">
                   {allActiveApps.map((app, index) => (
                     <button
@@ -237,19 +236,16 @@ export default function Landing() {
                   ))}
                 </div>
                 
-                {/* Slider Container */}
                 <div className="relative overflow-hidden">
                   <div 
                     className="flex transition-transform duration-500 ease-out"
                     style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                   >
-                    
-                    {/* Individual App Slides */}
                     {allActiveApps.map((app) => {
                       const appColor = app.color || '#3b82f6';
                       const lightColor = lightenColor(appColor, 90);
                       const displayFeatures = getAppFeatures(app);
-                      const { col1, col2, col3 } = splitFeaturesIntoThreeColumns(displayFeatures);
+                      const { col1, col2, col3 } = splitFeaturesIntoColumns(displayFeatures, false);
                       
                       return (
                         <div 
@@ -289,33 +285,39 @@ export default function Landing() {
                           >
                             <h4 className="font-medium text-gray-700 mb-3 text-center">Key Features</h4>
                             <div className="grid grid-cols-3 gap-x-3 gap-y-3">
-                              {col1.map((feature, i) => (
-                                <div key={i} className="flex items-center">
-                                  <div 
-                                    className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
-                                    style={{ backgroundColor: appColor }}
-                                  ></div>
-                                  <span className="text-xs text-gray-600 leading-tight">{feature}</span>
-                                </div>
-                              ))}
-                              {col2.map((feature, i) => (
-                                <div key={i} className="flex items-center">
-                                  <div 
-                                    className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
-                                    style={{ backgroundColor: appColor }}
-                                  ></div>
-                                  <span className="text-xs text-gray-600 leading-tight">{feature}</span>
-                                </div>
-                              ))}
-                              {col3.map((feature, i) => (
-                                <div key={i} className="flex items-center">
-                                  <div 
-                                    className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
-                                    style={{ backgroundColor: appColor }}
-                                  ></div>
-                                  <span className="text-xs text-gray-600 leading-tight">{feature}</span>
-                                </div>
-                              ))}
+                              <div className="space-y-3">
+                                {col1.map((feature, i) => (
+                                  <div key={i} className="flex items-center">
+                                    <div 
+                                      className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
+                                      style={{ backgroundColor: appColor }}
+                                    ></div>
+                                    <span className="text-xs text-gray-600 leading-tight">{feature}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="space-y-3">
+                                {col2.map((feature, i) => (
+                                  <div key={i} className="flex items-center">
+                                    <div 
+                                      className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
+                                      style={{ backgroundColor: appColor }}
+                                    ></div>
+                                    <span className="text-xs text-gray-600 leading-tight">{feature}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="space-y-3">
+                                {col3.map((feature, i) => (
+                                  <div key={i} className="flex items-center">
+                                    <div 
+                                      className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
+                                      style={{ backgroundColor: appColor }}
+                                    ></div>
+                                    <span className="text-xs text-gray-600 leading-tight">{feature}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                             
                             <div className="mt-5 text-center">
@@ -336,7 +338,6 @@ export default function Landing() {
                       );
                     })}
                     
-                    {/* Empty State */}
                     {allActiveApps.length === 0 && (
                       <div className="w-full flex-shrink-0">
                         <div className="text-center py-12">
@@ -346,11 +347,9 @@ export default function Landing() {
                         </div>
                       </div>
                     )}
-                    
                   </div>
                 </div>
                 
-                {/* Navigation Arrows */}
                 {allActiveApps.length > 1 && (
                   <>
                     <button
@@ -368,7 +367,6 @@ export default function Landing() {
                   </>
                 )}
                 
-                {/* Slide Counter */}
                 {allActiveApps.length > 0 && (
                   <div className="mt-4 text-center">
                     <p className="text-xs text-gray-400">
@@ -380,66 +378,65 @@ export default function Landing() {
                     </p>
                   </div>
                 )}
-                
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-white">
+      {/* Features Section - Mobile Responsive Grid */}
+      <section id="features" className="py-12 md:py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Everything You Need to{' '}
               <span className="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
                 Scale Your Business
               </span>
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
               Powerful tools designed to streamline your operations and boost productivity
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {defaultFeatures.map((feature, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition group">
-                <div className="bg-gradient-to-br from-primary-50 to-blue-50 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition">
-                  <feature.icon className="h-6 w-6 text-primary-600" />
+              <div key={i} className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition group">
+                <div className="bg-gradient-to-br from-primary-50 to-blue-50 p-2 md:p-3 rounded-xl w-fit mb-3 md:mb-4 group-hover:scale-110 transition">
+                  <feature.icon className="h-5 w-5 md:h-6 md:w-6 text-primary-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-1 md:mb-2">{feature.title}</h3>
+                <p className="text-sm md:text-base text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Built-in Systems Section */}
+      {/* Built-in Systems Section - Mobile Responsive */}
       {builtInApps.length > 0 && (
-        <section id="systems" className="py-20 px-4 bg-gradient-to-br from-gray-50 to-white">
+        <section id="systems" className="py-12 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
                 Built-in Business Systems
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
                 Powerful integrated tools designed for modern businesses
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               {builtInApps.map((app) => {
                 const appColor = app.color || '#3b82f6';
                 const lightColor = lightenColor(appColor, 90);
                 const mediumColor = lightenColor(appColor, 70);
                 const displayFeatures = getAppFeatures(app);
-                const { col1, col2, col3 } = splitFeaturesIntoThreeColumns(displayFeatures);
+                const { col1, col2, col3 } = splitFeaturesIntoColumns(displayFeatures, isMobile);
                 
                 return (
                   <div
                     key={app._id}
                     onClick={() => handleLaunchApp(app)}
-                    className="group relative rounded-2xl p-6 border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+                    className="group relative rounded-2xl p-4 md:p-6 border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
                     style={{ 
                       backgroundColor: lightColor,
                       borderColor: mediumColor,
@@ -448,33 +445,21 @@ export default function Landing() {
                     }}
                   >
                     <div className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition duration-500" style={{ backgroundColor: appColor }}></div>
-                    <div className="relative w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition" style={{ background: `linear-gradient(135deg, ${appColor}, ${lightenColor(appColor, -20)})` }}>
-                      <span className="text-2xl">{app.icon || '📦'}</span>
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-3 md:mb-4 shadow-md group-hover:scale-110 transition" style={{ background: `linear-gradient(135deg, ${appColor}, ${lightenColor(appColor, -20)})` }}>
+                      <span className="text-xl md:text-2xl">{app.icon || '📦'}</span>
                     </div>
-                    <h3 className="relative text-xl font-bold mb-2" style={{ color: appColor }}>{app.name}</h3>
-                    <p className="relative text-gray-600 text-sm mb-4">{app.description || 'Internal System'}</p>
-                    <div className="relative grid grid-cols-3 gap-x-3 gap-y-2 mb-6">
-                      {col1.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
-                          <span className="text-xs leading-tight">{feature}</span>
-                        </div>
-                      ))}
-                      {col2.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
-                          <span className="text-xs leading-tight">{feature}</span>
-                        </div>
-                      ))}
-                      {col3.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
+                    <h3 className="relative text-lg md:text-xl font-bold mb-1 md:mb-2" style={{ color: appColor }}>{app.name}</h3>
+                    <p className="relative text-gray-600 text-xs md:text-sm mb-3 md:mb-4">{app.description || 'Internal System'}</p>
+                    <div className="relative grid grid-cols-1 gap-2 mb-4 md:mb-6">
+                      {displayFeatures.slice(0, 3).map((feature, i) => (
+                        <div key={i} className="flex items-center text-xs md:text-sm text-gray-600">
                           <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
                           <span className="text-xs leading-tight">{feature}</span>
                         </div>
                       ))}
                     </div>
                     <div className="relative flex items-center justify-between">
-                      <span className="font-medium group-hover:translate-x-1 transition flex items-center" style={{ color: appColor }}>
+                      <span className="font-medium text-sm group-hover:translate-x-1 transition flex items-center" style={{ color: appColor }}>
                         Access System
                         <HiChevronRight className="h-4 w-4 ml-1" />
                       </span>
@@ -491,57 +476,44 @@ export default function Landing() {
         </section>
       )}
 
-      {/* External Apps Section */}
+      {/* External Apps Section - Mobile Responsive */}
       {featuresEnabled.enableExternalApps && externalApps.length > 0 && (
-        <section id="apps" className="py-20 px-4 bg-white">
+        <section id="apps" className="py-12 md:py-20 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Connected External Apps</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">Seamlessly integrate with your favorite third-party tools</p>
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Connected External Apps</h2>
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">Seamlessly integrate with your favorite third-party tools</p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               {externalApps.map((app) => {
                 const appColor = app.color || '#3b82f6';
                 const lightColor = lightenColor(appColor, 90);
                 const mediumColor = lightenColor(appColor, 70);
                 const displayFeatures = getAppFeatures(app);
-                const { col1, col2, col3 } = splitFeaturesIntoThreeColumns(displayFeatures);
                 
                 return (
                   <div
                     key={app._id}
                     onClick={() => handleLaunchApp(app)}
-                    className="group relative rounded-2xl p-6 border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+                    className="group relative rounded-2xl p-4 md:p-6 border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
                     style={{ backgroundColor: lightColor, borderColor: mediumColor, borderLeftColor: appColor, borderLeftWidth: '4px' }}
                   >
                     <div className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition duration-500" style={{ backgroundColor: appColor }}></div>
-                    <div className="relative w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition" style={{ background: `linear-gradient(135deg, ${appColor}, ${lightenColor(appColor, -20)})` }}>
-                      <span className="text-2xl">{app.icon || '🔗'}</span>
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-3 md:mb-4 shadow-md group-hover:scale-110 transition" style={{ background: `linear-gradient(135deg, ${appColor}, ${lightenColor(appColor, -20)})` }}>
+                      <span className="text-xl md:text-2xl">{app.icon || '🔗'}</span>
                     </div>
-                    <h3 className="relative text-xl font-bold mb-2" style={{ color: appColor }}>{app.name}</h3>
-                    <p className="relative text-gray-600 text-sm mb-4">{app.description || `${app.category || 'External'} Application`}</p>
-                    <div className="relative grid grid-cols-3 gap-x-3 gap-y-2 mb-6">
-                      {col1.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
-                          <span className="text-xs leading-tight">{feature}</span>
-                        </div>
-                      ))}
-                      {col2.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
-                          <span className="text-xs leading-tight">{feature}</span>
-                        </div>
-                      ))}
-                      {col3.map((feature, i) => (
-                        <div key={i} className="flex items-center text-sm text-gray-600">
+                    <h3 className="relative text-lg md:text-xl font-bold mb-1 md:mb-2" style={{ color: appColor }}>{app.name}</h3>
+                    <p className="relative text-gray-600 text-xs md:text-sm mb-3 md:mb-4">{app.description || `${app.category || 'External'} Application`}</p>
+                    <div className="relative space-y-2 mb-4 md:mb-6">
+                      {displayFeatures.slice(0, 3).map((feature, i) => (
+                        <div key={i} className="flex items-center text-xs md:text-sm text-gray-600">
                           <div className="w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: appColor }}></div>
                           <span className="text-xs leading-tight">{feature}</span>
                         </div>
                       ))}
                     </div>
                     <div className="relative flex items-center justify-between">
-                      <span className="font-medium group-hover:translate-x-1 transition flex items-center" style={{ color: appColor }}>
+                      <span className="font-medium text-sm group-hover:translate-x-1 transition flex items-center" style={{ color: appColor }}>
                         Launch App
                         <HiExternalLink className="h-4 w-4 ml-1" />
                       </span>
@@ -555,24 +527,24 @@ export default function Landing() {
         </section>
       )}
 
-      {/* CTA Section - Only show if not logged in */}
+      {/* CTA Section - Mobile Optimized */}
       {!user && (
-        <section className="py-20 px-4 bg-gradient-to-r from-primary-600 to-blue-600">
+        <section className="py-12 md:py-20 px-4 bg-gradient-to-r from-primary-600 to-blue-600">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Business?</h2>
-            <p className="text-primary-100 text-lg mb-8 max-w-2xl mx-auto">Join thousands of businesses using {appName} to streamline operations and grow faster.</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/register" className="bg-white text-primary-700 px-8 py-3 rounded-xl font-semibold hover:bg-primary-50 transition shadow-lg hover:shadow-xl">Start Free Trial</Link>
-              <Link to="/login" className="bg-primary-700 text-white px-8 py-3 rounded-xl font-semibold hover:bg-primary-800 transition border border-primary-400">Sign In</Link>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">Ready to Transform Your Business?</h2>
+            <p className="text-primary-100 text-base md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto px-4">Join thousands of businesses using {appName} to streamline operations and grow faster.</p>
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+              <Link to="/register" className="bg-white text-primary-700 px-6 md:px-8 py-2 md:py-3 rounded-xl font-semibold text-sm md:text-base hover:bg-primary-50 transition shadow-lg hover:shadow-xl">Start Free Trial</Link>
+              <Link to="/login" className="bg-primary-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl font-semibold text-sm md:text-base hover:bg-primary-800 transition border border-primary-400">Sign In</Link>
             </div>
-            <p className="text-primary-200 text-sm mt-6">No credit card required · 14-day free trial · Cancel anytime</p>
+            <p className="text-primary-200 text-xs md:text-sm mt-4 md:mt-6">No credit card required · 14-day free trial · Cancel anytime</p>
           </div>
         </section>
       )}
 
       <LandingFooter />
 
-      {/* Chat Widget */}
+      {/* Chat Widget - Mobile optimized position */}
       <ChatWidget isOpen={isChatOpen} onToggle={() => setIsChatOpen(!isChatOpen)} />
     </div>
   );

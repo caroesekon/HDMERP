@@ -16,13 +16,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -33,5 +28,8 @@ export default defineConfig({
         },
       },
     },
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
   },
 });
